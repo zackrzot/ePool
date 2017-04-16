@@ -32,7 +32,7 @@ namespace ePool
     public partial class MainWindow : Window
     {
 
-        private int BALL_WIDTH = 300;
+        private int BALL_WIDTH = 25;
 
         /// <summary>
         /// Active Kinect sensor
@@ -142,7 +142,6 @@ namespace ePool
             }
         }
 
-
         /// <summary>
         /// Event handler for Kinect sensor's DepthFrameReady event
         /// </summary>
@@ -161,43 +160,28 @@ namespace ePool
                     int minDepth = depthFrame.MinDepth;
                     int maxDepth = depthFrame.MaxDepth;
 
-                    // Convert the depth to RGB and fill 1D array
-                    int colorPixelIndex = 0;
+                    // Load depth values to 1D array
                     short[] depthArray1D = new short[this.depthPixels.Length];
-                    for (int i = this.depthPixels.Length - 1; i >= 0; --i)
+                    for (int i = 0; i < this.depthPixels.Length; ++i)
+                        depthArray1D[i] = depthPixels[i].Depth;
+
+                    // Convert the 1D data to the desired 2D array
+                    this.depthArray2D = makeAndFlip2DArray(depthArray1D, this.colorBitmap.PixelHeight, this.colorBitmap.PixelWidth);
+
+                    // Convert the depth to RGB
+                    int colorPixelIndex = 0;
+                    for (int i = 0; i <= this.depthArray2D.GetUpperBound(0); i++)
                     {
-                        // Get the depth for this pixel
-                        short depth = depthPixels[i].Depth;
-                        depthArray1D[i] = depth;
-
-                        // To convert to a byte, we're discarding the most-significant
-                        // rather than least-significant bits.
-                        // We're preserving detail, although the intensity will "wrap."
-                        // Values outside the reliable depth range are mapped to 0 (black).
-
-                        // Note: Using conditionals in this loop could degrade performance.
-                        // Consider using a lookup table instead when writing production code.
-                        // See the KinectDepthViewer class used by the KinectExplorer sample
-                        // for a lookup table example.
-                        byte intensity = (byte)(depth >= minDepth && depth <= maxDepth ? depth : 0);
-
-                        // Write out blue byte
-                        this.colorPixels[colorPixelIndex++] = intensity;
-
-                        // Write out green byte
-                        this.colorPixels[colorPixelIndex++] = intensity;
-
-                        // Write out red byte                        
-                        this.colorPixels[colorPixelIndex++] = intensity;
-
-                        // We're outputting BGR, the last byte in the 32 bits is unused so skip it
-                        // If we were outputting BGRA, we would write alpha here.
-                        ++colorPixelIndex;
+                        for (int j = 0; j <= this.depthArray2D.GetUpperBound(1); j++)
+                        {
+                            short depth = this.depthArray2D[i, j];
+                            byte intensity = (byte)(depth >= minDepth && depth <= maxDepth ? depth : 0);
+                            this.colorPixels[colorPixelIndex++] = intensity;
+                            this.colorPixels[colorPixelIndex++] = intensity;
+                            this.colorPixels[colorPixelIndex++] = intensity;
+                            ++colorPixelIndex;
+                        }
                     }
-
-                    // Convert and assign 2D array
-                    this.depthArray2D = make2DArray(depthArray1D, this.colorBitmap.PixelHeight, this.colorBitmap.PixelWidth);
-
 
                     // Write the pixel data into our bitmap
                     this.colorBitmap.WritePixels(
@@ -205,7 +189,6 @@ namespace ePool
                         this.colorPixels,
                         this.colorBitmap.PixelWidth * sizeof(int),
                         0);
-
 
                     // If crop box is valid, draw crop box
                     if (this.cropBox.TLX != -1)
@@ -215,7 +198,6 @@ namespace ePool
 
                 }
             }
-
         }
 
         private void saveDepthData()
@@ -226,41 +208,48 @@ namespace ePool
                 return;
             }
 
-            short[,] ballVector = new short[(Int16)BALL_WIDTH,(Int16)BALL_WIDTH];
+            Console.WriteLine("Width of 2d: " + this.depthArray2D.GetUpperBound(0).ToString());
+            Console.WriteLine("Height of 2d: " + this.depthArray2D.GetUpperBound(1).ToString());
 
             //initialize a StreamWriter
             StreamWriter sw = new StreamWriter(@"C:/data.txt");
 
-            Console.WriteLine("Width of image: " + this.colorBitmap.PixelWidth.ToString());
-            Console.WriteLine("Height of image: " + this.colorBitmap.PixelHeight.ToString());
-            Console.WriteLine("Width of 2d arr: " + this.depthArray2D.GetUpperBound(1).ToString());
-            Console.WriteLine("Height of 2d arr: " + this.depthArray2D.GetUpperBound(0).ToString());
-
+            // Crop the sub-vector, identify the min depth in the region
+            short[,] ballVector = new short[(Int16)BALL_WIDTH, (Int16)BALL_WIDTH];
             int ballVecI = 0;
             int ballVecJ = 0;
             short minVal = 9999;
-            short maxVal = 0;
-            for (int i = this.cropBox.TLX; i < this.cropBox.BRX; ++i)
+            for (int i = this.cropBox.TLY; i < this.cropBox.BRY; ++i)
             {
-                for (int j = this.cropBox.TLY; j < this.cropBox.BRY; ++j)
+                for (int j = this.cropBox.TLX; j < this.cropBox.BRX; ++j)
                 {
-                    short val = this.depthArray2D[i, j];
+
+                    short val = 0;
+                    try
+                    {
+                        val = this.depthArray2D[(i - 1), (j - 1)];
+                    }
+                    catch {
+                        Console.WriteLine("Width of 2d: " + this.depthArray2D.GetUpperBound(0).ToString());
+                        Console.WriteLine("Height of 2d: " + this.depthArray2D.GetUpperBound(1).ToString());
+                        Console.WriteLine("i-1: " + (i - 1).ToString());
+                        Console.WriteLine("j-1: " + (j - 1).ToString());
+                    }
                     ballVector[ballVecI, ballVecJ] = val;
                     ballVecJ++;
                     if (val != 0)
-                    {
                         if (val < minVal)
                             minVal = val;
-                    }
                 }
                 ballVecI++;
                 ballVecJ = 0;
             }
 
-            // Normalize
-            for (int i = 0; i < ballVector.GetUpperBound(1); i++)
+            // Normalize and identify max depth of region
+            short maxVal = 0;
+            for (int i = 0; i < ballVector.GetUpperBound(0); i++)
             {
-                for (int j = 0; j < ballVector.GetUpperBound(0); j++)
+                for (int j = 0; j < ballVector.GetUpperBound(1); j++)
                 {
                     short val = ballVector[i, j];
                     var newVal = (Int16)(val - minVal);
@@ -270,13 +259,12 @@ namespace ePool
                 }
             }
 
+            // Generate and write text output
             string output = "";
-            for (int i = 0; i < ballVector.GetUpperBound(1); i++)
+            for (int i = 0; i < ballVector.GetUpperBound(0); i++)
             {
-                for (int j = 0; j < ballVector.GetUpperBound(0); j++)
-                {
+                for (int j = 0; j < ballVector.GetUpperBound(1); j++)
                     output += ballVector[i, j].ToString() + "\t";
-                }
                 sw.WriteLine(output);
                 output = "";
             }
@@ -300,32 +288,26 @@ namespace ePool
                 }
             }
 
+            // Write file to disk
             myBitmap.Save("C:/img.png");
-
- 
 
             this.statusBarText.Text = "Depth data saved.";
         }
 
-        private void searchFrame()
-        {
-
-
-        }
 
         private void button_saveDepthData_Click(object sender, RoutedEventArgs e)
         {
             saveDepthData();
         }
 
-        private static T[,] make2DArray<T>(T[] input, int height, int width)
+        private static T[,] makeAndFlip2DArray<T>(T[] input, int height, int width)
         {
             T[,] output = new T[height, width];
             for (int i = 0; i < height; i++)
             {
                 for (int j = 0; j < width; j++)
                 {
-                    output[i, j] = input[i * width + j];
+                    output[(height - i - 1), j] = input[i * width + j];
                 }
             }
             return output;
@@ -356,19 +338,19 @@ namespace ePool
             try
             {
                 // Verify values
-                int tlx = int.Parse(textBox_TLX.Text);
-                int tly = int.Parse(textBox_TLY.Text);
+                int tlx = int.Parse(textBox_TLX.Text)-1;
+                int tly = int.Parse(textBox_TLY.Text)-1;
                 int brx = tlx + BALL_WIDTH;
                 int bry = tly + BALL_WIDTH;
                 textBox_BRX.Text = brx.ToString();
                 textBox_BRY.Text = bry.ToString();
-                if (tlx < 0 || tlx > this.colorBitmap.PixelWidth)
+                if (tlx < 0 || tlx > this.colorBitmap.PixelWidth-1)
                     throw new Exception();
-                if (tly < 0 || tly > this.colorBitmap.PixelHeight)
+                if (tly < 0 || tly > this.colorBitmap.PixelHeight-1)
                     throw new Exception();
-                if (brx < 0 || brx > this.colorBitmap.PixelWidth)
+                if (brx < 0 || brx > this.colorBitmap.PixelWidth-1)
                     throw new Exception();
-                if (bry < 0 || bry > this.colorBitmap.PixelHeight)
+                if (bry < 0 || bry > this.colorBitmap.PixelHeight-1)
                     throw new Exception();
                 // Update depth tool box object
                 this.cropBox.TLX = tlx;
@@ -386,6 +368,9 @@ namespace ePool
             
 
         }
+
+
+
     }
 
 }
