@@ -5,23 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ePool"
         mc:Ignorable="d"
-        Title="ePool" Height="474.5" Width="868.5"
+        Title="ePool" Height="455.5" Width="868.5"
         ResizeMode="NoResize" Icon="Resources/ePool.ico">
     <Grid>
 
         <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center"/>
-        <Grid HorizontalAlignment="Left" Margin="10,10,0,10" Width="840">
-            <Image x:Name="Image" Width="490" Height="390" Margin="10,6,340,30" RenderTransformOrigin="0.5,0.5"/>
-            <StatusBar HorizontalAlignment="Stretch" x:Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="Black" Margin="10,0,0,0">
-                <StatusBarItem Padding="0 0 0 10"/>
-                <TextBlock x:Name="statusBarText"><Run Text="Welcome to ePool."/></TextBlock>
-            </StatusBar>
-            <Button x:Name="button_saveDepthData" Content="Save Depth Data" HorizontalAlignment="Left" Margin="710,122,0,0" VerticalAlignment="Top" Width="120" Click="button_saveDepthData_Click"/>
-            <TextBox x:Name="textBox_TLX" HorizontalAlignment="Left" Height="23" Margin="710,10,0,0" TextWrapping="Wrap" Text="225" VerticalAlignment="Top" Width="120" TextChanged="textBox_TLX_TextChanged"/>
-            <TextBox x:Name="textBox_TLY" HorizontalAlignment="Left" Height="23" Margin="710,38,0,0" TextWrapping="Wrap" Text="220" VerticalAlignment="Top" Width="120" TextChanged="textBox_TLY_TextChanged"/>
-            <TextBox x:Name="textBox_BRX" HorizontalAlignment="Left" Height="23" Margin="710,66,0,0" TextWrapping="Wrap" Text="255" VerticalAlignment="Top" Width="120" TextChanged="textBox_BRX_TextChanged" IsEnabled="False"/>
-            <TextBox x:Name="textBox_BRY" HorizontalAlignment="Left" Height="23" Margin="710,94,0,0" TextWrapping="Wrap" Text="250" VerticalAlignment="Top" Width="120" TextChanged="textBox_BRY_TextChanged" IsEnabled="False"/>
+        <Grid HorizontalAlignment="Left" Margin="10,10,0,36" Width="840">
+            <Border BorderThickness="3"
+                    BorderBrush="#FF000000"
+                    VerticalAlignment="Top" Height="409" Margin="0,0,0,-27">
+                <Image x:Name="Image" Width="490" Height="390" Margin="7,6,337,30" RenderTransformOrigin="0.5,0.5"/>
+            </Border>
+            <StatusBar HorizontalAlignment="Stretch" x:Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="Black" Margin="10,0,0,0"/>
+            <Button x:Name="button_saveDepthData" Content="Save Depth Data" HorizontalAlignment="Left" Margin="710,66,0,0" VerticalAlignment="Top" Width="120" Click="button_saveDepthData_Click"/>
+            <TextBox x:Name="textBox_TLX" HorizontalAlignment="Left" Height="23" Margin="710,10,0,0" TextWrapping="Wrap" Text="180" VerticalAlignment="Top" Width="52" TextChanged="textBox_TLX_TextChanged"/>
+            <TextBox x:Name="textBox_TLY" HorizontalAlignment="Left" Height="23" Margin="778,10,0,0" TextWrapping="Wrap" Text="205" VerticalAlignment="Top" Width="52" TextChanged="textBox_TLY_TextChanged"/>
+            <TextBox x:Name="textBox_BRX" HorizontalAlignment="Left" Height="23" Margin="710,38,0,0" TextWrapping="Wrap" Text="255" VerticalAlignment="Top" Width="52" TextChanged="textBox_BRX_TextChanged" IsEnabled="False"/>
+            <TextBox x:Name="textBox_BRY" HorizontalAlignment="Left" Height="23" Margin="778,38,0,0" TextWrapping="Wrap" Text="250" VerticalAlignment="Top" Width="52" TextChanged="textBox_BRY_TextChanged" IsEnabled="False"/>
+            <RichTextBox x:Name="richTextBox_console" HorizontalAlignment="Left" Height="223" Margin="510,176,0,-17" VerticalAlignment="Top" Width="320" BorderThickness="4">
+                <FlowDocument>
+                    <Paragraph>
+                        <Run Text="RichTextBox"/>
+                    </Paragraph>
+                </FlowDocument>
+            </RichTextBox>
         </Grid>
-
     </Grid>
 </Window>

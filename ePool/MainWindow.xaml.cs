@@ -125,7 +125,7 @@ namespace ePool
 
             if (null == this.sensor)
             {
-                this.statusBarText.Text = "No Kinect ready.";
+                this.richTextBox_console.AppendText("No Kinect ready.");
             }
         }
 
@@ -204,7 +204,7 @@ namespace ePool
         {
             if(this.cropBox.TLX == -1)
             {
-                this.statusBarText.Text = "You must fisrt specify the bounds of the crop box.";
+                this.richTextBox_console.AppendText("You must fisrt specify the bounds of the crop box.");
                 return;
             }
 
@@ -291,12 +291,13 @@ namespace ePool
             // Write file to disk
             myBitmap.Save("C:/img.png");
 
-            this.statusBarText.Text = "Depth data saved.";
+            this.richTextBox_console.AppendText("Depth data saved.");
         }
 
 
         private void button_saveDepthData_Click(object sender, RoutedEventArgs e)
         {
+            checkDepthDataValues();
             saveDepthData();
         }
 
@@ -315,22 +316,22 @@ namespace ePool
 
         private void textBox_TLX_TextChanged(object sender, TextChangedEventArgs e)
         {
-            checkDepthDataValues();
+            //checkDepthDataValues();
         }
 
         private void textBox_TLY_TextChanged(object sender, TextChangedEventArgs e)
         {
-            checkDepthDataValues();
+            //checkDepthDataValues();
         }
 
         private void textBox_BRX_TextChanged(object sender, TextChangedEventArgs e)
         {
-            checkDepthDataValues();
+            //checkDepthDataValues();
         }
 
         private void textBox_BRY_TextChanged(object sender, TextChangedEventArgs e)
         {
-            checkDepthDataValues();
+            //checkDepthDataValues();
         }
 
         private void checkDepthDataValues()
@@ -357,12 +358,12 @@ namespace ePool
                 this.cropBox.TLY = tly;
                 this.cropBox.BRX = brx;
                 this.cropBox.BRY = bry;
-                this.statusBarText.Text = "Depth data tool updated!";
+                this.richTextBox_console.AppendText("Depth data tool updated!");
             }
             catch
             {
                 this.cropBox = new CropBox();
-                this.statusBarText.Text = "Invalid corrdinates given for depth data tool.";
+                this.richTextBox_console.AppendText("Invalid corrdinates given for depth data tool.");
             }
 
             
