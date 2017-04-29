@@ -5,30 +5,49 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ePool"
         mc:Ignorable="d"
-        Title="ePool" Height="455.5" Width="868.5"
+        Title="ePool" Height="591.5" Width="868.5"
         ResizeMode="NoResize" Icon="Resources/ePool.ico">
     <Grid>
 
         <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center"/>
-        <Grid HorizontalAlignment="Left" Margin="10,10,0,36" Width="840">
-            <Border BorderThickness="3"
-                    BorderBrush="#FF000000"
-                    VerticalAlignment="Top" Height="409" Margin="0,0,0,-27">
-                <Image x:Name="Image" Width="490" Height="390" Margin="7,6,337,30" RenderTransformOrigin="0.5,0.5"/>
-            </Border>
+        <Grid HorizontalAlignment="Left" Margin="10,10,0,10" Width="840">
+            <Image x:Name="Image" Width="490" Margin="10,10,340,139" RenderTransformOrigin="0.5,0.5"/>
+            <Image x:Name="ImageColor" Margin="510,10,10,292" RenderTransformOrigin="0.5,0.5"/>
             <StatusBar HorizontalAlignment="Stretch" x:Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="Black" Margin="10,0,0,0"/>
-            <Button x:Name="button_saveDepthData" Content="Save Depth Data" HorizontalAlignment="Left" Margin="710,66,0,0" VerticalAlignment="Top" Width="120" Click="button_saveDepthData_Click"/>
-            <TextBox x:Name="textBox_TLX" HorizontalAlignment="Left" Height="23" Margin="710,10,0,0" TextWrapping="Wrap" Text="180" VerticalAlignment="Top" Width="52" TextChanged="textBox_TLX_TextChanged"/>
-            <TextBox x:Name="textBox_TLY" HorizontalAlignment="Left" Height="23" Margin="778,10,0,0" TextWrapping="Wrap" Text="205" VerticalAlignment="Top" Width="52" TextChanged="textBox_TLY_TextChanged"/>
-            <TextBox x:Name="textBox_BRX" HorizontalAlignment="Left" Height="23" Margin="710,38,0,0" TextWrapping="Wrap" Text="255" VerticalAlignment="Top" Width="52" TextChanged="textBox_BRX_TextChanged" IsEnabled="False"/>
-            <TextBox x:Name="textBox_BRY" HorizontalAlignment="Left" Height="23" Margin="778,38,0,0" TextWrapping="Wrap" Text="250" VerticalAlignment="Top" Width="52" TextChanged="textBox_BRY_TextChanged" IsEnabled="False"/>
-            <RichTextBox x:Name="richTextBox_console" HorizontalAlignment="Left" Height="223" Margin="510,176,0,-17" VerticalAlignment="Top" Width="320" BorderThickness="4">
+            <Button x:Name="button_saveDepthData" Content="Save Depth Data" HorizontalAlignment="Left" Margin="365,471,0,0" VerticalAlignment="Top" Width="120" Click="button_saveDepthData_Click"/>
+            <TextBox x:Name="textBox_TLX" HorizontalAlignment="Left" Height="23" Margin="365,415,0,0" TextWrapping="Wrap" Text="180" VerticalAlignment="Top" Width="52"/>
+            <TextBox x:Name="textBox_TLY" HorizontalAlignment="Left" Height="23" Margin="433,415,0,0" TextWrapping="Wrap" Text="205" VerticalAlignment="Top" Width="52"/>
+            <TextBox x:Name="textBox_BRX" HorizontalAlignment="Left" Height="23" Margin="365,443,0,0" TextWrapping="Wrap" Text="255" VerticalAlignment="Top" Width="52" IsEnabled="False"/>
+            <TextBox x:Name="textBox_BRY" HorizontalAlignment="Left" Height="23" Margin="433,443,0,0" TextWrapping="Wrap" Text="250" VerticalAlignment="Top" Width="52" IsEnabled="False"/>
+            <RichTextBox x:Name="richTextBox_console" IsReadOnly="True" HorizontalAlignment="Left" Height="264" Margin="510,252,0,0" VerticalAlignment="Top" Width="320" BorderThickness="4" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True">
                 <FlowDocument>
                     <Paragraph>
-                        <Run Text="RichTextBox"/>
+                        <Run Text=""/>
                     </Paragraph>
                 </FlowDocument>
             </RichTextBox>
+            <Slider x:Name="slider_pan" HorizontalAlignment="Left" Margin="180,414,0,0" VerticalAlignment="Top" Width="131" Maximum="255" ValueChanged="slider_pan_ValueChanged" SmallChange="1"/>
+            <ComboBox x:Name="comboBox_light" HorizontalAlignment="Left" Margin="44,413,0,0" VerticalAlignment="Top" Width="80" SelectedIndex="0"/>
+            <ComboBox x:Name="comboBox_color" HorizontalAlignment="Left" Margin="44,440,0,0" VerticalAlignment="Top" Width="80" SelectedIndex="0"/>
+            <ComboBox x:Name="comboBox_gobo" HorizontalAlignment="Left" Margin="44,467,0,0" VerticalAlignment="Top" Width="80" SelectedIndex="0"/>
+            <ComboBox x:Name="comboBox_strobe" HorizontalAlignment="Left" Margin="44,494,0,-18" VerticalAlignment="Top" Width="80" SelectedIndex="0"/>
+            <Label x:Name="label" Content="Light" HorizontalAlignment="Right" Margin="0,414,796,0" VerticalAlignment="Top"/>
+            <Label x:Name="label_Copy" Content="Color" HorizontalAlignment="Right" Margin="0,440,796,0" VerticalAlignment="Top"/>
+            <Label x:Name="label_Copy1" Content="Gobo" HorizontalAlignment="Right" Margin="0,467,796,0" VerticalAlignment="Top"/>
+            <Label x:Name="label_Copy2" Content="Strobe" HorizontalAlignment="Right" Margin="0,494,795,-22" VerticalAlignment="Top"/>
+            <Label x:Name="label_Copy3" Content="Pan" HorizontalAlignment="Right" Margin="0,410,660,0" VerticalAlignment="Top"/>
+            <Label x:Name="label_pan" Content="0" HorizontalAlignment="Right" Margin="0,411,495,0" VerticalAlignment="Top" RenderTransformOrigin="0.517,-0.038"/>
+            <Slider x:Name="slider_pan_fine" HorizontalAlignment="Left" Margin="180,441,0,0" VerticalAlignment="Top" Width="131" Maximum="255" SmallChange="1" ValueChanged="slider_pan_fine_ValueChanged"/>
+            <Label x:Name="label_Copy5" Content="Pan Fine" HorizontalAlignment="Right" Margin="0,438,661,0" VerticalAlignment="Top"/>
+            <Label x:Name="label_pan_fine" Content="0" HorizontalAlignment="Right" Margin="0,438,495,0" VerticalAlignment="Top"/>
+            <Slider x:Name="slider_tilt" HorizontalAlignment="Left" Margin="180,469,0,0" VerticalAlignment="Top" Width="131" Maximum="255" SmallChange="1" ValueChanged="slider_tilt_ValueChanged"/>
+            <Label x:Name="label_Copy7" Content="Tilt" HorizontalAlignment="Right" Margin="0,465,661,0" VerticalAlignment="Top"/>
+            <Label x:Name="label_tilt" Content="0" HorizontalAlignment="Right" Margin="0,466,495,26"/>
+            <Slider x:Name="slider_tilt_fine" HorizontalAlignment="Left" Margin="180,495,0,0" VerticalAlignment="Top" Width="131" Maximum="255" SmallChange="1" ValueChanged="slider_tilt_fine_ValueChanged"/>
+            <Label x:Name="label_Copy9" Content="Tilt Fine" HorizontalAlignment="Right" Margin="0,491,661,0" VerticalAlignment="Top"/>
+            <Label x:Name="label_tile_fine" Content="0" HorizontalAlignment="Right" Margin="0,492,495,0" VerticalAlignment="Top"/>
+            <Button x:Name="button_setLight" Content="Set Light" HorizontalAlignment="Left" Margin="365,497,0,0" VerticalAlignment="Top" Width="67" Height="22" Click="button_setLight_Click"/>
+            <Button x:Name="button_lightOff" Content="Off" HorizontalAlignment="Left" Margin="437,497,0,0" VerticalAlignment="Top" Width="48" Click="button_lightOff_Click"/>
         </Grid>
     </Grid>
 </Window>

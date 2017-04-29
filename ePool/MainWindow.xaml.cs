@@ -31,7 +31,6 @@ namespace ePool
     /// </summary>
     public partial class MainWindow : Window
     {
-
         private int BALL_WIDTH = 25;
 
         /// <summary>
@@ -47,7 +46,7 @@ namespace ePool
         /// <summary>
         /// Bitmap that will hold color information
         /// </summary>
-        private WriteableBitmap colorBitmap;
+        private WriteableBitmap depthBitmap;
 
         /// <summary>
         /// Intermediate storage for the depth data received from the camera
@@ -60,9 +59,21 @@ namespace ePool
         private short[,] depthArray2D;
 
         /// <summary>
-        /// Intermediate storage for the depth data converted to color
+        /// Bitmap that will hold color information
+        /// </summary>
+        private WriteableBitmap colorBitmap;
+
+        /// <summary>
+        /// Intermediate storage for the color data received from the camera
         /// </summary>
         private byte[] colorPixels;
+
+        /// <summary>
+        /// Intermediate storage for the depth data converted to color
+        /// </summary>
+        private byte[] renderedDepthPixels;
+
+        private SpeechRecognizer mySpeechRecognizer;
 
         public MainWindow()
         {
@@ -79,6 +90,27 @@ namespace ePool
         /// <param name="e">event arguments</param>
         private void WindowLoaded(object sender, RoutedEventArgs e)
         {
+            Logger.Init(this.richTextBox_console);
+
+            InitializeSensor();
+            InitializeDMX();
+
+            populateDropDowns();
+
+            LightThread.StartLights();
+
+            // Start speech recognizer after KinectSensor started successfully.
+            this.mySpeechRecognizer = SpeechRecognizer.Create();
+
+            if (null != this.mySpeechRecognizer)
+            {
+                this.mySpeechRecognizer.Start(sensor.AudioSource);
+                Logger.Log("VR started.");
+            }
+        }
+
+        private void InitializeSensor()
+        {
             // Look through all sensors and start the first connected one.
             // This requires that a Kinect is connected at the time of app startup.
             // To make your app robust against plug/unplug, 
@@ -94,38 +126,60 @@ namespace ePool
 
             if (null != this.sensor)
             {
+                // Depth sensor
                 // Turn on the depth stream to receive depth frames
                 this.sensor.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);
-
                 // Allocate space to put the depth pixels we'll receive
                 this.depthPixels = new DepthImagePixel[this.sensor.DepthStream.FramePixelDataLength];
-
                 // Allocate space to put the color pixels we'll create
-                this.colorPixels = new byte[this.sensor.DepthStream.FramePixelDataLength * sizeof(int)];
-
+                this.renderedDepthPixels = new byte[this.sensor.DepthStream.FramePixelDataLength * sizeof(int)];
                 // This is the bitmap we'll display on-screen
-                this.colorBitmap = new WriteableBitmap(this.sensor.DepthStream.FrameWidth, this.sensor.DepthStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
-
+                this.depthBitmap = new WriteableBitmap(this.sensor.DepthStream.FrameWidth, this.sensor.DepthStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
                 // Set the image we display to point to the bitmap where we'll put the image data
-                this.Image.Source = this.colorBitmap;
-
+                this.Image.Source = this.depthBitmap;
                 // Add an event handler to be called whenever there is new depth frame data
                 this.sensor.DepthFrameReady += this.SensorDepthFrameReady;
 
+                // Color sensor
+                // Turn on the color stream to receive color frames
+                this.sensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
+                // Allocate space to put the pixels we'll receive
+                this.colorPixels = new byte[this.sensor.ColorStream.FramePixelDataLength];
+                // This is the bitmap we'll display on-screen
+                this.colorBitmap = new WriteableBitmap(this.sensor.ColorStream.FrameWidth, this.sensor.ColorStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
+                // Set the image we display to point to the bitmap where we'll put the image data
+                this.ImageColor.Source = this.colorBitmap;
+                // Add an event handler to be called whenever there is new color frame data
+                this.sensor.ColorFrameReady += this.SensorColorFrameReady;
+
                 // Start the sensor!
-                try
-                {
-                    this.sensor.Start();
-                }
-                catch (IOException)
-                {
-                    this.sensor = null;
-                }
+                try { this.sensor.Start(); }
+                catch (IOException) { this.sensor = null; }
+                Logger.Log("Sensor started.");
             }
 
             if (null == this.sensor)
             {
-                this.richTextBox_console.AppendText("No Kinect ready.");
+                Logger.Log("No Kinect ready.");
+            }
+        }
+
+        private void InitializeDMX()
+        {
+            try
+            {
+                OpenDMX.start();                                            //find and connect to devive (first found if multiple)
+                if (OpenDMX.status == FT_STATUS.FT_DEVICE_NOT_FOUND)       //update status
+                    Logger.Log("No Enttec USB Device Found");
+                else if (OpenDMX.status == FT_STATUS.FT_OK)
+                    Logger.Log("Found DMX on USB");
+                else
+                    Logger.Log("Error Opening DMX Device");
+            }
+            catch (Exception exp)
+            {
+                Console.WriteLine(exp);
+                Logger.Log("Error Connecting to Enttec USB Device");
             }
         }
 
@@ -136,6 +190,8 @@ namespace ePool
         /// <param name="e">event arguments</param>
         private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            LightThread.StopLights();
+
             if (null != this.sensor)
             {
                 this.sensor.Stop();
@@ -166,7 +222,7 @@ namespace ePool
                         depthArray1D[i] = depthPixels[i].Depth;
 
                     // Convert the 1D data to the desired 2D array
-                    this.depthArray2D = makeAndFlip2DArray(depthArray1D, this.colorBitmap.PixelHeight, this.colorBitmap.PixelWidth);
+                    this.depthArray2D = make2DArray(depthArray1D, this.depthBitmap.PixelHeight, this.depthBitmap.PixelWidth);
 
                     // Convert the depth to RGB
                     int colorPixelIndex = 0;
@@ -176,12 +232,43 @@ namespace ePool
                         {
                             short depth = this.depthArray2D[i, j];
                             byte intensity = (byte)(depth >= minDepth && depth <= maxDepth ? depth : 0);
-                            this.colorPixels[colorPixelIndex++] = intensity;
-                            this.colorPixels[colorPixelIndex++] = intensity;
-                            this.colorPixels[colorPixelIndex++] = intensity;
+                            this.renderedDepthPixels[colorPixelIndex++] = intensity;
+                            this.renderedDepthPixels[colorPixelIndex++] = intensity;
+                            this.renderedDepthPixels[colorPixelIndex++] = intensity;
                             ++colorPixelIndex;
                         }
                     }
+
+                    // Write the pixel data into our bitmap
+                    this.depthBitmap.WritePixels(
+                        new Int32Rect(0, 0, this.depthBitmap.PixelWidth, this.depthBitmap.PixelHeight),
+                        this.renderedDepthPixels,
+                        this.depthBitmap.PixelWidth * sizeof(int),
+                        0);
+
+                    // If crop box is valid, draw crop box
+                    if (this.cropBox.TLX != -1)
+                    {
+                        this.depthBitmap.DrawRectangle(this.cropBox.TLX, this.cropBox.TLY, this.cropBox.BRX, this.cropBox.BRY, System.Windows.Media.Color.FromRgb(255, 0, 0));
+                    }
+
+                }
+            }
+        }
+
+        /// <summary>
+        /// Event handler for Kinect sensor's ColorFrameReady event
+        /// </summary>
+        /// <param name="sender">object sending the event</param>
+        /// <param name="e">event arguments</param>
+        private void SensorColorFrameReady(object sender, ColorImageFrameReadyEventArgs e)
+        {
+            using (ColorImageFrame colorFrame = e.OpenColorImageFrame())
+            {
+                if (colorFrame != null)
+                {
+                    // Copy the pixel data from the image to a temporary array
+                    colorFrame.CopyPixelDataTo(this.colorPixels);
 
                     // Write the pixel data into our bitmap
                     this.colorBitmap.WritePixels(
@@ -189,13 +276,6 @@ namespace ePool
                         this.colorPixels,
                         this.colorBitmap.PixelWidth * sizeof(int),
                         0);
-
-                    // If crop box is valid, draw crop box
-                    if (this.cropBox.TLX != -1)
-                    {
-                        this.colorBitmap.DrawRectangle(this.cropBox.TLX, this.cropBox.TLY, this.cropBox.BRX, this.cropBox.BRY, System.Windows.Media.Color.FromRgb(255, 0, 0));
-                    }
-
                 }
             }
         }
@@ -291,9 +371,8 @@ namespace ePool
             // Write file to disk
             myBitmap.Save("C:/img.png");
 
-            this.richTextBox_console.AppendText("Depth data saved.");
+            Logger.Log("Depth data saved.");
         }
-
 
         private void button_saveDepthData_Click(object sender, RoutedEventArgs e)
         {
@@ -301,37 +380,17 @@ namespace ePool
             saveDepthData();
         }
 
-        private static T[,] makeAndFlip2DArray<T>(T[] input, int height, int width)
+        private static T[,] make2DArray<T>(T[] input, int height, int width)
         {
             T[,] output = new T[height, width];
             for (int i = 0; i < height; i++)
             {
                 for (int j = 0; j < width; j++)
                 {
-                    output[(height - i - 1), j] = input[i * width + j];
+                    output[(i), j] = input[i * width + j];
                 }
             }
             return output;
-        }
-
-        private void textBox_TLX_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            //checkDepthDataValues();
-        }
-
-        private void textBox_TLY_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            //checkDepthDataValues();
-        }
-
-        private void textBox_BRX_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            //checkDepthDataValues();
-        }
-
-        private void textBox_BRY_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            //checkDepthDataValues();
         }
 
         private void checkDepthDataValues()
@@ -345,25 +404,25 @@ namespace ePool
                 int bry = tly + BALL_WIDTH;
                 textBox_BRX.Text = brx.ToString();
                 textBox_BRY.Text = bry.ToString();
-                if (tlx < 0 || tlx > this.colorBitmap.PixelWidth-1)
+                if (tlx < 0 || tlx > this.depthBitmap.PixelWidth-1)
                     throw new Exception();
-                if (tly < 0 || tly > this.colorBitmap.PixelHeight-1)
+                if (tly < 0 || tly > this.depthBitmap.PixelHeight-1)
                     throw new Exception();
-                if (brx < 0 || brx > this.colorBitmap.PixelWidth-1)
+                if (brx < 0 || brx > this.depthBitmap.PixelWidth-1)
                     throw new Exception();
-                if (bry < 0 || bry > this.colorBitmap.PixelHeight-1)
+                if (bry < 0 || bry > this.depthBitmap.PixelHeight-1)
                     throw new Exception();
                 // Update depth tool box object
                 this.cropBox.TLX = tlx;
                 this.cropBox.TLY = tly;
                 this.cropBox.BRX = brx;
                 this.cropBox.BRY = bry;
-                this.richTextBox_console.AppendText("Depth data tool updated!");
+                Logger.Log("Depth data tool updated!");
             }
             catch
             {
                 this.cropBox = new CropBox();
-                this.richTextBox_console.AppendText("Invalid corrdinates given for depth data tool.");
+                Logger.Log("Invalid corrdinates given for depth data tool.");
             }
 
             
@@ -371,7 +430,51 @@ namespace ePool
         }
 
 
+        private void populateDropDowns()
+        {
+            this.comboBox_light.ItemsSource = Enum.GetValues(typeof(LightCtrl.Light));
+            this.comboBox_color.ItemsSource = Enum.GetValues(typeof(LightCtrl.Color));
+            this.comboBox_gobo.ItemsSource = Enum.GetValues(typeof(LightCtrl.Gobo));
+            this.comboBox_strobe.ItemsSource = Enum.GetValues(typeof(LightCtrl.Strobe));
+        }
 
+        private void slider_pan_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            this.label_pan.Content = Math.Floor(this.slider_pan.Value).ToString();
+        }
+
+        private void slider_pan_fine_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            this.label_pan_fine.Content = Math.Floor(this.slider_pan_fine.Value).ToString();
+        }
+
+        private void slider_tilt_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            this.label_tilt.Content = Math.Floor(this.slider_tilt.Value).ToString();
+        }
+
+        private void slider_tilt_fine_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            this.label_tile_fine.Content = Math.Floor(this.slider_tilt_fine.Value).ToString();
+        }
+
+        private void button_setLight_Click(object sender, RoutedEventArgs e)
+        {
+            LightCtrl.SetAll(
+                (LightCtrl.Light)Enum.Parse(typeof(LightCtrl.Light), comboBox_light.SelectedValue.ToString()),
+                (LightCtrl.Color)Enum.Parse(typeof(LightCtrl.Color), comboBox_color.SelectedValue.ToString()),
+                (LightCtrl.Gobo)Enum.Parse(typeof(LightCtrl.Gobo), comboBox_gobo.SelectedValue.ToString()),
+                (LightCtrl.Strobe)Enum.Parse(typeof(LightCtrl.Strobe), comboBox_strobe.SelectedValue.ToString()),
+                (Int32)Math.Floor(slider_pan.Value),
+                (Int32)Math.Floor(slider_pan_fine.Value),
+                (Int32)Math.Floor(slider_tilt.Value),
+                (Int32)Math.Floor(slider_tilt_fine.Value));
+        }
+
+        private void button_lightOff_Click(object sender, RoutedEventArgs e)
+        {
+            Presets.SetOff();
+        }
     }
-
+    
 }

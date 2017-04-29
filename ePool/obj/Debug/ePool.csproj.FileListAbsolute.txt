@@ -24,7 +24,6 @@ C:\Users\Zack\Documents\ePool\ePool\bin\Debug\WriteableBitmapEx.Wpf.dll
 C:\Users\Zack\Documents\ePool\ePool\bin\Debug\Microsoft.Kinect.xml
 C:\Users\Zack\Documents\ePool\ePool\bin\Debug\WriteableBitmapEx.Wpf.pdb
 C:\Users\Zack\Documents\ePool\ePool\bin\Debug\WriteableBitmapEx.Wpf.xml
-C:\Users\Zack\Documents\ePool\ePool\obj\Debug\ePool.csprojResolveAssemblyReference.cache
 C:\Users\Zack\Documents\ePool\ePool\obj\Debug\MainWindow.g.cs
 C:\Users\Zack\Documents\ePool\ePool\obj\Debug\App.g.cs
 C:\Users\Zack\Documents\ePool\ePool\obj\Debug\ePool_MarkupCompile.cache
@@ -35,3 +34,5 @@ C:\Users\Zack\Documents\ePool\ePool\obj\Debug\ePool.Properties.Resources.resourc
 C:\Users\Zack\Documents\ePool\ePool\obj\Debug\ePool.csproj.GenerateResource.Cache
 C:\Users\Zack\Documents\ePool\ePool\obj\Debug\ePool.exe
 C:\Users\Zack\Documents\ePool\ePool\obj\Debug\ePool.pdb
+C:\Users\Zack\Documents\ePool\ePool\bin\Debug\Microsoft.Speech.dll
+C:\Users\Zack\Documents\ePool\ePool\obj\Debug\ePool.csprojResolveAssemblyReference.cache
