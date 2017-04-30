@@ -99,7 +99,7 @@ namespace ePool
 
             if (null != this.mySpeechRecognizer)
             {
-                //this.mySpeechRecognizer.Start(sensor.AudioSource);
+                this.mySpeechRecognizer.Start(sensor.AudioSource);
                 Logger.Log("VR started.");
             }
 
@@ -289,6 +289,7 @@ namespace ePool
 
             //initialize a StreamWriter
             StreamWriter sw = new StreamWriter(@"C:/"+ string.Format(@"{0}.txt", Guid.NewGuid()) + ".txt");
+            StreamWriter swf = new StreamWriter(@"C:/" + string.Format(@"{0}.txt", Guid.NewGuid()) + "_FULL.txt");
 
             // Crop the sub-vector, identify the min depth in the region
             short[,] ballVector = new short[(Int16)BALL_WIDTH, (Int16)BALL_WIDTH];
@@ -347,6 +348,21 @@ namespace ePool
 
             //dispose of sw
             sw.Close();
+
+            short[,] temp = TableVision.DepthArray2D;
+
+            // Generate and write text output
+            string outputFull = "";
+            for (int i = 0; i < temp.GetUpperBound(0); i++)
+            {
+                for (int j = 0; j < temp.GetUpperBound(1); j++)
+                    outputFull += temp[i, j].ToString() + "\t";
+                swf.WriteLine(outputFull);
+                outputFull = "";
+            }
+
+            //dispose of sw
+            swf.Close();
 
             // Create a Bitmap object from a file.
             Bitmap myBitmap = new Bitmap(ballVector.GetUpperBound(0), ballVector.GetUpperBound(1));

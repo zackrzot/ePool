@@ -20,6 +20,8 @@ namespace ePool
                 { "Back Left", Commands.BackLeft },
                 { "Break", Commands.Break },
                 { "Lights Off", Commands.LightsOff },
+                { "Strobe On", Commands.StrobeOn },
+                { "Strobe Off", Commands.StrobeOff }
             };
 
         private SpeechRecognitionEngine sre;
@@ -43,7 +45,9 @@ namespace ePool
             BackRight,
             BackLeft,
             Break,
-            LightsOff
+            LightsOff,
+            StrobeOn,
+            StrobeOff
         }
 
         public EchoCancellationMode EchoCancellationMode
@@ -237,6 +241,16 @@ namespace ePool
                 Presets.SetBreak();
             if (said == Commands.LightsOff)
                 Presets.SetOff();
+            if (said == Commands.StrobeOn)
+            {
+                LightThread.Light1.StrobeVal = LightCtrl.Strobe.ON;
+                LightThread.Light2.StrobeVal = LightCtrl.Strobe.ON;
+            }
+            if (said == Commands.StrobeOff)
+            {
+                LightThread.Light1.StrobeVal = LightCtrl.Strobe.OPEN;
+                LightThread.Light2.StrobeVal = LightCtrl.Strobe.OPEN;
+            }
         }
 
         public class SaidSomethingEventArgs : EventArgs
