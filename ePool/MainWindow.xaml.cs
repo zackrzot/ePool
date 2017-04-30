@@ -54,11 +54,6 @@ namespace ePool
         private DepthImagePixel[] depthPixels;
 
         /// <summary>
-        /// Two-dimenetional representation of the depth data
-        /// </summary>
-        private short[,] depthArray2D;
-
-        /// <summary>
         /// Bitmap that will hold color information
         /// </summary>
         private WriteableBitmap colorBitmap;
@@ -104,9 +99,13 @@ namespace ePool
 
             if (null != this.mySpeechRecognizer)
             {
-                this.mySpeechRecognizer.Start(sensor.AudioSource);
+                //this.mySpeechRecognizer.Start(sensor.AudioSource);
                 Logger.Log("VR started.");
             }
+
+
+            try { TableVision.LoadBallSignatures(); }
+            catch(Exception ex) { Logger.Log("Unable to load ball signatures: " + ex.ToString()); }
         }
 
         private void InitializeSensor()
@@ -222,15 +221,15 @@ namespace ePool
                         depthArray1D[i] = depthPixels[i].Depth;
 
                     // Convert the 1D data to the desired 2D array
-                    this.depthArray2D = make2DArray(depthArray1D, this.depthBitmap.PixelHeight, this.depthBitmap.PixelWidth);
+                    TableVision.DepthArray2D = make2DArray(depthArray1D, this.depthBitmap.PixelHeight, this.depthBitmap.PixelWidth);
 
                     // Convert the depth to RGB
                     int colorPixelIndex = 0;
-                    for (int i = 0; i <= this.depthArray2D.GetUpperBound(0); i++)
+                    for (int i = 0; i <= TableVision.DepthArray2D.GetUpperBound(0); i++)
                     {
-                        for (int j = 0; j <= this.depthArray2D.GetUpperBound(1); j++)
+                        for (int j = 0; j <= TableVision.DepthArray2D.GetUpperBound(1); j++)
                         {
-                            short depth = this.depthArray2D[i, j];
+                            short depth = TableVision.DepthArray2D[i, j];
                             byte intensity = (byte)(depth >= minDepth && depth <= maxDepth ? depth : 0);
                             this.renderedDepthPixels[colorPixelIndex++] = intensity;
                             this.renderedDepthPixels[colorPixelIndex++] = intensity;
@@ -288,11 +287,8 @@ namespace ePool
                 return;
             }
 
-            Console.WriteLine("Width of 2d: " + this.depthArray2D.GetUpperBound(0).ToString());
-            Console.WriteLine("Height of 2d: " + this.depthArray2D.GetUpperBound(1).ToString());
-
             //initialize a StreamWriter
-            StreamWriter sw = new StreamWriter(@"C:/data.txt");
+            StreamWriter sw = new StreamWriter(@"C:/"+ string.Format(@"{0}.txt", Guid.NewGuid()) + ".txt");
 
             // Crop the sub-vector, identify the min depth in the region
             short[,] ballVector = new short[(Int16)BALL_WIDTH, (Int16)BALL_WIDTH];
@@ -307,11 +303,11 @@ namespace ePool
                     short val = 0;
                     try
                     {
-                        val = this.depthArray2D[(i - 1), (j - 1)];
+                        val = TableVision.DepthArray2D[(i - 1), (j - 1)];
                     }
                     catch {
-                        Console.WriteLine("Width of 2d: " + this.depthArray2D.GetUpperBound(0).ToString());
-                        Console.WriteLine("Height of 2d: " + this.depthArray2D.GetUpperBound(1).ToString());
+                        Console.WriteLine("Width of 2d: " + TableVision.DepthArray2D.GetUpperBound(0).ToString());
+                        Console.WriteLine("Height of 2d: " + TableVision.DepthArray2D.GetUpperBound(1).ToString());
                         Console.WriteLine("i-1: " + (i - 1).ToString());
                         Console.WriteLine("j-1: " + (j - 1).ToString());
                     }
@@ -474,6 +470,11 @@ namespace ePool
         private void button_lightOff_Click(object sender, RoutedEventArgs e)
         {
             Presets.SetOff();
+        }
+
+        private void button_detect_Click(object sender, RoutedEventArgs e)
+        {
+            TableVision.DetectBalls();
         }
     }
     

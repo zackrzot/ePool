@@ -33,8 +33,6 @@ namespace ePool
             this.LoadGrammar(this.sre);
         }
 
-        public event EventHandler<SaidSomethingEventArgs> SaidSomething;
-
         public enum Commands
         {
             None = 0,
@@ -118,7 +116,6 @@ namespace ePool
 
                 this.sre.SpeechRecognized -= this.SreSpeechRecognized;
                 this.sre.SpeechHypothesized -= this.SreSpeechHypothesized;
-                this.sre.SpeechRecognitionRejected -= this.SreSpeechRecognitionRejected;
             }
         }
 
@@ -196,29 +193,16 @@ namespace ePool
             speechRecognitionEngine.LoadGrammar(g);
             speechRecognitionEngine.SpeechRecognized += this.SreSpeechRecognized;
             speechRecognitionEngine.SpeechHypothesized += this.SreSpeechHypothesized;
-            speechRecognitionEngine.SpeechRecognitionRejected += this.SreSpeechRecognitionRejected;
-        }
-
-        private void SreSpeechRecognitionRejected(object sender, SpeechRecognitionRejectedEventArgs e)
-        {
-            var said = new SaidSomethingEventArgs { Command = Commands.None, Matched = "?" };
-
-            if (this.SaidSomething != null)
-            {
-                this.SaidSomething(new object(), said);
-            }
-
-            Logger.Log("Speech Rejected");
         }
 
         private void SreSpeechHypothesized(object sender, SpeechHypothesizedEventArgs e)
         {
-            Logger.Log("Speech Hypothesized: \t" + e.Result.Text);
+            Logger.Log("Speech Hypothesized:" + e.Result.Text);
         }
 
         private void SreSpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
-            Logger.Log("Speech Recognized: \t" + e.Result.Text);
+            Logger.Log("Speech Recognized: " + e.Result.Text);
 
             if (e.Result.Confidence < 0.3)
             {
@@ -228,9 +212,14 @@ namespace ePool
 
             Commands said = Commands.None;
 
-            foreach(var kvp in this.gameplayPhrases)
+            foreach (var kvp in this.gameplayPhrases)
+            {
                 if (kvp.Key == e.Result.Text)
+                {
+                    Logger.Log("Doing VR Action: " + said.ToString());
                     said = kvp.Value;
+                }
+            }
 
             if (said == Commands.FrontRight)
                 Presets.SetFR();

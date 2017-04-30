@@ -12,14 +12,14 @@
         <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center"/>
         <Grid HorizontalAlignment="Left" Margin="10,10,0,10" Width="840">
             <Image x:Name="Image" Width="490" Margin="10,10,340,139" RenderTransformOrigin="0.5,0.5"/>
-            <Image x:Name="ImageColor" Margin="510,10,10,292" RenderTransformOrigin="0.5,0.5"/>
+            <Image x:Name="ImageColor" Margin="510,10,10,297" RenderTransformOrigin="0.5,0.5"/>
             <StatusBar HorizontalAlignment="Stretch" x:Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="Black" Margin="10,0,0,0"/>
-            <Button x:Name="button_saveDepthData" Content="Save Depth Data" HorizontalAlignment="Left" Margin="365,471,0,0" VerticalAlignment="Top" Width="120" Click="button_saveDepthData_Click"/>
+            <Button x:Name="button_saveDepthData" Content="Save Data" HorizontalAlignment="Left" Margin="365,471,0,0" VerticalAlignment="Top" Width="67" Click="button_saveDepthData_Click"/>
             <TextBox x:Name="textBox_TLX" HorizontalAlignment="Left" Height="23" Margin="365,415,0,0" TextWrapping="Wrap" Text="180" VerticalAlignment="Top" Width="52"/>
             <TextBox x:Name="textBox_TLY" HorizontalAlignment="Left" Height="23" Margin="433,415,0,0" TextWrapping="Wrap" Text="205" VerticalAlignment="Top" Width="52"/>
             <TextBox x:Name="textBox_BRX" HorizontalAlignment="Left" Height="23" Margin="365,443,0,0" TextWrapping="Wrap" Text="255" VerticalAlignment="Top" Width="52" IsEnabled="False"/>
             <TextBox x:Name="textBox_BRY" HorizontalAlignment="Left" Height="23" Margin="433,443,0,0" TextWrapping="Wrap" Text="250" VerticalAlignment="Top" Width="52" IsEnabled="False"/>
-            <RichTextBox x:Name="richTextBox_console" IsReadOnly="True" HorizontalAlignment="Left" Height="264" Margin="510,252,0,0" VerticalAlignment="Top" Width="320" BorderThickness="4" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True">
+            <RichTextBox x:Name="richTextBox_console" IsReadOnly="True" HorizontalAlignment="Left" Height="264" Margin="510,252,0,0" VerticalAlignment="Top" Width="320" BorderThickness="4" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" FontSize="10" Block.LineHeight="6">
                 <FlowDocument>
                     <Paragraph>
                         <Run Text=""/>
@@ -48,6 +48,7 @@
             <Label x:Name="label_tile_fine" Content="0" HorizontalAlignment="Right" Margin="0,492,495,0" VerticalAlignment="Top"/>
             <Button x:Name="button_setLight" Content="Set Light" HorizontalAlignment="Left" Margin="365,497,0,0" VerticalAlignment="Top" Width="67" Height="22" Click="button_setLight_Click"/>
             <Button x:Name="button_lightOff" Content="Off" HorizontalAlignment="Left" Margin="437,497,0,0" VerticalAlignment="Top" Width="48" Click="button_lightOff_Click"/>
+            <Button x:Name="button_detect" Content="Detect" HorizontalAlignment="Left" Margin="437,471,0,0" VerticalAlignment="Top" Width="48" Click="button_detect_Click"/>
         </Grid>
     </Grid>
 </Window>
